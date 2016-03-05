@@ -1,72 +1,232 @@
 <!DOCTYPE html>
 <html>
+<head>
+	<meta charset="utf-8">
+	<title>2048</title>
+	<link rel="stylesheet" href="">
+	
+</head>
+<body>
+	<canvas id="main"></canvas>
+	<h1>2048</h1>
+	<script type="text/javascript">
+		function DIY(x){
+	texs=["猪","吃屎","扣脚","蠢","傻","单身","胖","丑","土","穷","笨","打豆豆"];
+	var i;
+	for(i=0;x!=1;i++){
+		x=x/2;
+	}
+	return texs[i-1];
+}
+function ini_mydata(){
+	var mydata=new Array(4);
+	for(var i=0;i<4;i++){
+		mydata[i]=new Array(4);
+		for(var m=0;m<4;m++){
+			mydata[i][m]={
+				color:"#CCC0B2",
+				num:0
+			}
+		}
+	}
+	return mydata;
+}
+function ini_data(){
+	var data=new Array(10);
+	data[0]={
+		num:2,
+		color:"#EEE4DA"
+	}
+	colors=["#EEE4DA","#ECE0CA","#F2B179","#F99265","#F57C61","#F3CD7C","#EDCC61","#EBC94E","#EFC442","#F7A78C","#F7A78C","#F7A78C"];
+	
+	for(var i=1;i<data.length;i++){
+		data[i]={
+			num:data[i-1].num*2,
+			color:colors[i],
+		}
+	}
+	return data;
+}
 
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Canvas-2048 : ">
+function add(mydata,context,data){
+	var change=data[Math.floor(Math.random()*3)];
+	mydataX=[];
+	mydataY=[];
+	for(var m=0;m<4;m++)
+		for(var n=0;n<4;n++){
+			if(mydata[m][n].num==0){
+				mydataX.push(m);
+				mydataY.push(n);
+			}
+		}
+		
+		var i=Math.floor(Math.random()*mydataX.length);
+	var x=mydataX[i];
+	var y=mydataY[i];
+	mydata[x][y].num=change.num;
+	mydata[x][y].color=change.color;
+	draw_each(mydata,context);
+}
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+function draw_each(mydata,context){
+	var x,y;
+	for(var m=0;m<4;m++)
+		for(var n=0;n<4;n++){
+			context.restore();
+			context.fillStyle=mydata[m][n].color;
+			x=(m+1)*110-100;
+			y=(n+1)*110-100;
+			context.fillRect(x,y,100,100);
+			if(mydata[m][n].num!=0){
+				context.restore();
+				context.font = "40px Courier New";
+				context.fillStyle="black";
+				context.textAlign='center';
+				context.textBaseline='middle';
+				var t=DIY(mydata[m][n].num);
+				context.fillText(t,x+50,y+50,100);
+			}
+		}
+}
+function findcolor(num,data){
+	var color;
+	for(var i=0;i<data.length;i++){
+		if(data[i].num==num){
+			color=data[i].color;
+			break;
+		}
+	}
+	return color;
+}
+function judge(data){
+	var a=0;
+	for(var m=0;m<4;m++)
+		for(var n=0;n<4;n++){if(data[m][n].num==0)a=1;}
+	for(var m=0;m<3;m++)
+		for(var n=0;n<3;n++){
+			if(data[m][n].num==data[m+1][n].num||data[m][n].num==data[m][n+1].num){
+				var a=1;
+			}
+		}
+	for(var i=0;i<3;i++){
+		if(data[3][i].num==data[3][i+1].num){
+			a=1
+		}
+		if(data[i][3].num==data[i+1][3].num){a=1}
+	}return a;
+}
 
-    <title>Canvas-2048</title>
-  </head>
 
-  <body>
+window.onload=function(){
+		var canvas=document.getElementById('main');
+		var context=canvas.getContext('2d');
+		canvas.height=450;
+		canvas.width=450;
+		context.fillStyle="#B7B09E";
+		context.fillRect(0,0,500,500);
+		context.save();
+	var mydata=ini_mydata();
+	var data=ini_data();
+	add(mydata,context,data);
+	var change1,chang2,change3,change4;
+	var allow=1;
+	document.onkeydown=function(e){
+		var key=e.keyCode;
+		var result=1;
+		if(allow){
+			switch(key){
+			case 37:
+			change1=0;
+			while(result==1){
+				result=0;
+				for(var m=0;m<4;m++)
+					for(var n=0;n<4;n++){
+						if(m<3&&((mydata[m][n].num!=0&&mydata[m][n].num==mydata[m+1][n].num)||(mydata[m][n].num==0&&mydata[m+1][n].num!=0))){
+						result=1;change1=1;
+						mydata[m][n].num+=mydata[m+1][n].num;
+						mydata[m][n].color=findcolor(mydata[m][n].num,data);
+						mydata[m+1][n].num=0;mydata[m+1][n].color="#CCC0B2";draw_each(mydata,context);
+						}
+					}
+			}
+			if(change1==1){
+				add(mydata,context,data);
+			}
+			break;
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/376084782/canvas-2048">View on GitHub</a>
+			case 38:
+			change2=0;
+			while(result==1){
+				result=0;
+				for(var m=0;m<4;m++)
+					for(var n=0;n<4;n++){
+						if(n<3&&((mydata[m][n].num!=0&&mydata[m][n].num==mydata[m][n+1].num)||(mydata[m][n].num==0&&mydata[m][n+1].num!=0))){
+						result=1;change2=1;
+						mydata[m][n].num+=mydata[m][n+1].num;
+						mydata[m][n].color=findcolor(mydata[m][n].num,data);
+						mydata[m][n+1].num=0;mydata[m][n+1].color="#CCC0B2";draw_each(mydata,context);
+						}
+					}
+			}
+			if(change2==1){
+				add(mydata,context,data);
+			}
+			break;
 
-          <h1 id="project_title">Canvas-2048</h1>
-          <h2 id="project_tagline"></h2>
+			case 39:
+			change3=0;
+			while(result==1){
+				result=0;
+				for(var m=3;m>0;m--)
+					for(var n=0;n<4;n++){
+						if(m>0&&((mydata[m][n].num!=0&&mydata[m][n].num==mydata[m-1][n].num)||(mydata[m][n].num==0&&mydata[m-1][n].num!=0))){
+						result=1;change3=1;
+						mydata[m][n].num+=mydata[m-1][n].num;
+						mydata[m][n].color=findcolor(mydata[m][n].num,data);
+						mydata[m-1][n].num=0;mydata[m-1][n].color="#CCC0B2";draw_each(mydata,context);
+						}
+					}
+			}
+			if(change3==1){
+				add(mydata,context,data);
+			}
+			break;
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/376084782/canvas-2048/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/376084782/canvas-2048/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
+			case 40:
+			change4=0;
+			while(result==1){
+				result=0;
+				for(var m=0;m<4;m++)
+					for(var n=3;n>0;n--){
+						if(n>0&&((mydata[m][n].num!=0&&mydata[m][n].num==mydata[m][n-1].num)||(mydata[m][n].num==0&&mydata[m][n-1].num!=0))){
+						result=1;change4=1;
+						mydata[m][n].num+=mydata[m][n-1].num;
+						mydata[m][n].color=findcolor(mydata[m][n].num,data);
+						mydata[m][n-1].num=0;mydata[m][n-1].color="#CCC0B2";draw_each(mydata,context);
+						}
+					}
+			}
+			if(change4==1){
+				add(mydata,context,data);
+			}
+			break;
+		}var judgement=judge(mydata);
+		if(judgement==0){
+			context.restore();
+			context.fillStyle="rgba(224, 160, 71, 0.5)";
+			context.fillRect(0,0,450,450);
+			context.restore();
+			context.fillStyle="black";
+			context.font="60px;"
+			context.fillText("Stupid!",225,225);
+			context.textAlign="center";
+			context.textBaseline="middle";
+			allow=0;
+		}
+	}
+}
+}
+	</script>
+</body>
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
-
-<h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
-
-<h3>
-<a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating pages manually</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://help.github.com/articles/basic-writing-and-formatting-syntax/#mentioning-users-and-teams" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Canvas-2048 maintained by <a href="https://github.com/376084782">376084782</a></p>
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-    
-
-  </body>
 </html>
